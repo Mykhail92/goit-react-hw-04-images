@@ -12,7 +12,7 @@ export const App = () => {
   const [images, setImages] = useState([]);
   const [pageNr, setPageNr] = useState(1);
   const [currentSearch, setCurrentSearch] = useState('');
-  const [error, setError] = useState(null);
+  // const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
   const [imgAlt, setImgAlt] = useState('');
@@ -23,7 +23,9 @@ export const App = () => {
 
     const inputForSearch = e.currentTarget.elements.inputForSearch;
     if (inputForSearch.value.trim() === '') {
-      return;
+      return alert(
+        'No results were found for your search, please re-enter your search'
+      );
     }
     try {
       setIsLoading(true);
@@ -31,8 +33,8 @@ export const App = () => {
       setImages(response);
       setPageNr(1);
       setCurrentSearch(inputForSearch.value);
-    } catch {
-      setError(alert('Error, reload your page please;'));
+    } catch (error) {
+      alert('Error, reload your page please;');
     } finally {
       setIsLoading(false);
       inputForSearch.value = '';
@@ -44,8 +46,8 @@ export const App = () => {
       const response = await fetchImages(currentSearch, pageNr + 1);
       setImages([...images, ...response]);
       setPageNr(pageNr + 1);
-    } catch {
-      setError(alert('Error, reload your page please;'));
+    } catch (error) {
+      alert('Error, reload your page please;');
     }
   };
 
