@@ -1,20 +1,18 @@
-import { Component } from 'react';
 import { Overlay, ModalItem } from './Modal.styled';
 
-export class Modal extends Component {
-  onBackdropClick = event => {
+export const Modal = ({ onClose, src, alt }) => {
+  const onBackdropClick = event => {
     console.log(event.target);
     if (event.target === event.currentTarget) {
-      this.props.onClose();
+      onClose();
     }
   };
-  render() {
-    return (
-      <Overlay onClick={this.onBackdropClick}>
-        <ModalItem>
-          <img src={this.props.src} alt={this.props.alt} />
-        </ModalItem>
-      </Overlay>
-    );
-  }
-}
+
+  return (
+    <Overlay onClick={onBackdropClick}>
+      <ModalItem>
+        <img src={src} alt={alt} />
+      </ModalItem>
+    </Overlay>
+  );
+};

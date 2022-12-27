@@ -1,4 +1,6 @@
-import React, { Component } from 'react';
+import React from 'react';
+import { useEffect } from 'react';
+import { useState } from 'react';
 import { fetchImages } from '../components/Api/Api';
 import { Button } from './Button/Button';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -6,20 +8,17 @@ import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import { SearchBar } from './SearchBar/SearchBar';
 
-export class App extends Component {
-  state = {
-    images: [],
-    pageNr: 1,
-    currentSearch: '',
-    error: null,
-    isModalOpen: false,
-    imgSrc: '',
-    imgAlt: '',
-    isLoading: false,
-    imgOnRequest: 0,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [pageNr, setPageNr] = useState(1);
+  const [currentSearch, setCurrentSearch] = useState('');
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imgSrc, setImgSrc] = useState('');
+  const [imgAlt, setImgAlt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  handleSubmit = async e => {
+  const handleSubmit = async e => {
     e.preventDefault();
 
     const inputForSearch = e.currentTarget.elements.inputForSearch;
@@ -27,101 +26,74 @@ export class App extends Component {
       return;
     }
     try {
-      this.setState({ isLoading: true });
+      setIsLoading(true);
       const response = await fetchImages(inputForSearch.value, 1);
-      this.setState({
-        images: response,
-        pageNr: 1,
-        currentSearch: inputForSearch.value,
-      });
+      setImages(response);
+      setPageNr(1);
+      setCurrentSearch(inputForSearch.value);
     } catch {
-      this.setState({
-        error: alert('Error, reload your page please;'),
-      });
+      setError(alert('Error, reload your page please;'));
     } finally {
-      this.setState({ isLoading: false });
+      setIsLoading(false);
       inputForSearch.value = '';
     }
   };
 
-  loadMoreClick = async () => {
+  const loadMoreClick = async () => {
     try {
-      const response = await fetchImages(
-        this.state.currentSearch,
-        this.state.pageNr + 1
-      );
-      this.setState({
-        images: [...this.state.images, ...response],
-        pageNr: this.state.pageNr + 1,
-      });
+      const response = await fetchImages(currentSearch, pageNr + 1);
+      setImages([...images, ...response]);
+      setPageNr(pageNr + 1);
     } catch {
-      this.setState({
-        error: alert('Error, reload your page please;'),
-      });
+      setError(alert('Error, reload your page please;'));
     }
   };
 
-  handleClickModal = e => {
-    this.setState({
-      isModalOpen: true,
-      imgSrc: e.target.name,
-      imgAlt: e.target.alt,
-    });
-  };
-  handleCloseModal = () => {
-    this.setState({
-      isModalOpen: false,
-      imgSrc: '',
-      imgAlt: '',
-    });
+  const handleClickModal = e => {
+    setIsModalOpen(true);
+    setImgSrc(e.target.name);
+    setImgAlt(e.target.alt);
   };
 
-  handleKeyDown = event => {
-    if (event.code === 'Escape') {
-      this.handleCloseModal();
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setImgSrc('');
+    setImgAlt('');
   };
 
-  async componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
+  useEffect(() => {
+    const handleKeyDown = event => {
+      if (event.code === 'Escape') {
+        handleCloseModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+  });
 
-  render() {
-    return (
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gridGap: '16px',
-          paddingBottom: '24px',
-        }}
-      >
-        <SearchBar onSubmit={this.handleSubmit} />
-        {this.state.isLoading ? (
-          <Loader />
-        ) : (
-          <>
-            <ImageGallery
-              images={this.state.images}
-              onImageClick={this.handleClickModal}
-            />
-          </>
-        )}
-        {this.state.images.length % 12 === 0 &&
-          this.state.images.length !== 0 &&
-          !this.state.isLoading && <Button onClick={this.loadMoreClick} />}
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridGap: '16px',
+        paddingBottom: '24px',
+      }}
+    >
+      <SearchBar onSubmit={handleSubmit} />
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <ImageGallery images={images} onImageClick={handleClickModal} />
+        </>
+      )}
+      {images.length % 12 === 0 && images.length !== 0 && !isLoading && (
+        <Button onClick={loadMoreClick} />
+      )}
 
-        {this.state.isModalOpen ? (
-          <Modal
-            src={this.state.imgSrc}
-            alt={this.state.imgAlt}
-            onClose={this.handleCloseModal}
-          />
-        ) : null}
-      </div>
-    );
-  }
-}
+      {isModalOpen ? (
+        <Modal src={imgSrc} alt={imgAlt} onClose={handleCloseModal} />
+      ) : null}
+    </div>
+  );
+};
